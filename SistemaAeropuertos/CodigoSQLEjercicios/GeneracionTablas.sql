@@ -98,7 +98,6 @@ CREATE TABLE avion (
 CREATE TABLE vuelo (
     id_vuelo SERIAL PRIMARY KEY,
     id_avion INT REFERENCES avion(id_avion),
-    id_aerolinea INT REFERENCES aerolinea(id_aerolinea),
     id_ciudad_origen INT REFERENCES ciudad(id_ciudad),
     id_ciudad_destino INT REFERENCES ciudad(id_ciudad),
     numero_vuelo VARCHAR(50),
@@ -126,8 +125,14 @@ CREATE TABLE reserva (
     id_vuelo INT REFERENCES vuelo(id_vuelo),
     id_aerolinea INT REFERENCES aerolinea(id_aerolinea),
     id_estado_reserva INT REFERENCES estado_reserva(id_estado_reserva),
+    id_categoria_boleto INT REFERENCES categoria_boleto(id_categoria_boleto),
     num_vuelo_deseado VARCHAR(50),
     codigo_reserva VARCHAR(50),
     datetime_transaccion TIMESTAMP,
     fecha_vencimiento DATE
+);
+
+CREATE TABLE categoria_boleto (
+    id_categoria_boleto SERIAL PRIMARY KEY,
+    nombre_categoria VARCHAR(50)
 );

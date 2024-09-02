@@ -4,7 +4,7 @@
 import psycopg2
 from psycopg2 import sql
 
-def abrir_conexion() -> psycopg2.connect | None:
+def abrir_conexion():
     try:
         # Configuración de la conexión a la base de datos
         conn = psycopg2.connect(
@@ -28,28 +28,33 @@ def cerrar_conexion(conn: psycopg2.connect):
         except Exception as e:
             print(f"Error al cerrar la conexión: {e}")
 
-def insert_data(conn: psycopg2.connect, table_name: str, data: dict):
+def insertar_datos(conn: psycopg2.connect, table_name: str, data_list: list[dict]):
     try:
         # Genero el cursor para ejecutar la consultas
         cursor = conn.cursor()
         
-        # Obtengo los valores a insertar a partir del diccionario
-        columns = data.keys()
-        values = [data[column] for column in columns]
+        # Obtengo las columnas de la tabla
+        columns = data_list[0].keys()
 
         # Genero la consulta de inserción
-        insert_query = sql.SQL("INSERT INTO {} ({}) VALUES ({})").format(
+        insert_query = sql.SQL("INSERT INTO {} ({}) VALUES {}").format(
             sql.Identifier(table_name),
             sql.SQL(', ').join(map(sql.Identifier, columns)),
-            sql.SQL(', ').join(sql.Placeholder() * len(values))
+            sql.SQL(', ').join(
+                sql.SQL('(') + sql.SQL(', ').join(sql.Placeholder() * len(columns)) + sql.SQL(')')
+                for _ in data_list
+            )
         )
+
+        # Genero la lista de valores para todas las filas
+        values = [value for row in data_list for value in row.values()]
 
         # Ejecuto la consulta de inserción
         cursor.execute(insert_query, values)
         
         # Confirmo los cambios en la base de datos
         conn.commit()
-        print(f"Datos insertados en la tabla {table_name}")
+        print(f"{len(data_list)} filas insertadas en la tabla {table_name}")
     except Exception as e:
         print(f"Error al insertar datos: {e}")
         conn.rollback() # Hago un rollback para deshacer los cambios en caso de error
