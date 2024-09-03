@@ -1,5 +1,8 @@
 import psycopg2
 from faker import Faker
+import random as rd
+
+#TODO Faltan poblar: Tour, empleado_tour, escala_tour, importe_tour
 
 # Me conecto a la base de datos
 def get_connection():
@@ -16,21 +19,29 @@ conn = get_connection()
 cursor = conn.cursor()
 fake = Faker()
 
-#NO EJECUTAR - Pendiente de resolver.
-antiguedad = range(0.0, 40.9)
-for _ in range(1,21):
+# Creo una vista para traer los ids de los especialistas
+view_especialistas = cursor.execute(""" 
+                        SELECT id_empleado FROM empleado WHERE id_cargo = 2
+                               """) 
+
+id_espec = cursor.fetchall() #los guardo en una lista de tuplas 
+
+id_especialistas = [] #Parseo la lista para que solo guarde los ids sin usar tuplas (Facilitar indexado)
+for id in id_espec:
+    id_especialistas.append(id[0])
+
+for _ in range(1,41):
+    especialista = rd.choice(id_especialistas)
     cursor.execute("""
-            INSERT INTO empleado (id_empleado, nombre_completo, id_cargo, tiempo_en_empresa, tours_atendidos, sueldo_total)
-            VALUES(%s, %s, %s, %s, %s, %s)
+            INSERT INTO escala (codigo_escala, ubicacion, id_especialista_escala)
+            VALUES(%s, %s, %s)
             """, (
-            _ ,
-            fake.name(),
-            fake.random_int(min=1, max=3),
-            fake.random_choices(antiguedad), #TODO Resolver cómo generar un float aleatorio. Dejo una idea
-            fake.random_int(min=1, max=100),
-            #Para el sueldo_total cuidado de pisarse entre tablas cargo y empleado, peligro de inconsistencias.
+            _,
+            fake.city(),
+            especialista
 
             ))
+
 
 conn.commit()
 cursor.close()
