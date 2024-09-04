@@ -2,8 +2,6 @@ import psycopg2
 from faker import Faker
 import random as rd
 
-#TODO Faltan poblar: Tour, empleado_tour, escala_tour, importe_tour
-
 # Me conecto a la base de datos
 def get_connection():
     return psycopg2.connect(
@@ -19,29 +17,54 @@ conn = get_connection()
 cursor = conn.cursor()
 fake = Faker()
 
-# Creo una vista para traer los ids de los especialistas
-view_especialistas = cursor.execute(""" 
-                        SELECT id_empleado FROM empleado WHERE id_cargo = 2
-                               """) 
+cursor.execute("""
+                Select codigo_escala from escala
+               """)
 
-id_espec = cursor.fetchall() #los guardo en una lista de tuplas 
+vista_escala = cursor.fetchall()
 
-id_especialistas = [] #Parseo la lista para que solo guarde los ids sin usar tuplas (Facilitar indexado)
-for id in id_espec:
-    id_especialistas.append(id[0])
+id_escalas = []
+for id in vista_escala:
+    id_escalas.append(id[0])
 
-for _ in range(1,41):
-    especialista = rd.choice(id_especialistas)
+cursor.execute("""
+                SELECT codigo_tour from tour
+               """)
+
+vista_tours = cursor.fetchall()
+
+id_tours = []
+for id in vista_tours:
+    id_tours.append(id[0])
+
+cursor.execute("""
+               Select salida from tour
+               """)
+
+salidas = cursor.fetchall()
+
+hora_salida = []
+for hora in salidas:
+    hora_salida.append(hora[0])
+
+for _ in range(1,3500):
+    id_escala = rd.choice(id_escalas)
+    id_tour = rd.choice(id_tours)
+    hora = hora_salida[id_tour-1]    
+    if hora.hour > 18:
+        llegada = hora.replace(hour = 18)
+    else:
+        llegada = hora.replace(hour = hora.hour+1) 
     cursor.execute("""
-            INSERT INTO escala (codigo_escala, ubicacion, id_especialista_escala)
-            VALUES(%s, %s, %s)
+            INSERT INTO escala_tour (codigo_tour_escala, codigo_escala, codigo_tour, llegada, tiempo_estadia)
+            VALUES(%s, %s, %s, %s, %s)
             """, (
             _,
-            fake.city(),
-            especialista
-
+            id_escala,
+            id_tour,
+            llegada,
+            fake.random_int(min=15, max=60)
             ))
-
 
 conn.commit()
 cursor.close()
