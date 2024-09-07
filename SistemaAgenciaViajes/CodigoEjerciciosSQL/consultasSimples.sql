@@ -68,5 +68,32 @@ where
   id_grupofam = 94  /* Ahora la eliminamos*/
 
 
+/* Ejercicio 10 g */ 
 
+CREATE INDEX index_cargo ON empleado (id_cargo);
 
+SELECT nombre_completo, tours_atendidos FROM empleado WHERE id_cargo = 2 AND tiempo_en_empresa > 10;
+
+/* Ejercicio 10 h */
+SELECT tipo_pago, COUNT(*) AS total_transacciones
+FROM importe_tour GROUP BY tipo_pago ORDER BY tipo_pago DESC;
+
+/* Ejercicio 10 i */
+SELECT
+  cliente.nombre,
+  ocupacion.descripcion as trabajo
+FROM
+  cliente  INNER JOIN ocupacion ON cliente.ocupacion = ocupacion.id_ocupacion
+LIMIT
+  100;
+
+/* Ejercicio 10 j */
+
+SELECT
+  c.nombre,
+  o.descripcion as trabajo
+FROM
+  cliente c
+  LEFT OUTER JOIN ocupacion o ON c.ocupacion = o.id_ocupacion
+LIMIT
+  100;
